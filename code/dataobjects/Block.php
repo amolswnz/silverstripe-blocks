@@ -413,15 +413,19 @@ class Block extends DataObject implements PermissionProvider
     }
 
     /**
+     * Returns Icon with Last edited date
+     *
      * @return HTMLText
      */
     public function isPublishedIcon()
     {
         $obj = HTMLText::create();
         if ($this->isPublished()) {
-            $obj->setValue('<img src="' . FRAMEWORK_ADMIN_DIR . '/images/alert-good.gif" />');
+            $lastEdited = Versioned::get_by_stage('Block', 'Live')->byID($this->ID)->LastEdited;
+            $obj->setValue('<img src="' . FRAMEWORK_ADMIN_DIR . '/images/alert-good.gif" /> ' . DBField::create_field('SS_Datetime', $lastEdited)->Nice());
         } else {
-            $obj->setValue('<img src="' . FRAMEWORK_ADMIN_DIR . '/images/alert-bad.gif" />');
+            $lastEdited = Versioned::get_by_stage('Block', 'Stage')->byID($this->ID)->LastEdited;
+            $obj->setValue('<img src="' . FRAMEWORK_ADMIN_DIR . '/images/alert-bad.gif" />'  .  DBField::create_field('SS_Datetime', $lastEdited)->Nice());
         }
         return $obj;
     }

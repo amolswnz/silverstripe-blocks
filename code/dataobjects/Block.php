@@ -111,7 +111,7 @@ class Block extends DataObject implements PermissionProvider
     public function getCMSFields()
     {
         $self = $this;
-        $this->beforeUpdateCMSFields(function($fields) use($self) {
+        $this->beforeUpdateCMSFields(function ($fields) use ($self) {
             /** @var FieldList $fields */
             Requirements::add_i18n_javascript(BLOCKS_DIR . '/javascript/lang');
 
@@ -421,11 +421,18 @@ class Block extends DataObject implements PermissionProvider
     {
         $obj = HTMLText::create();
         if ($this->isPublished()) {
-            $lastEdited = Versioned::get_by_stage('Block', 'Live')->byID($this->ID)->LastEdited;
-            $obj->setValue('<img src="' . FRAMEWORK_ADMIN_DIR . '/images/alert-good.gif" /> ' . DBField::create_field('SS_Datetime', $lastEdited)->Nice());
-        } else {
+            $currentBlock = Versioned::get_by_stage('Block', 'Live')->byID($this->ID);
+            if ($currentBlock->isLatestVersion()) {
+                $lastEdited = $currentBlock->LastEdited;
+                $image =  FRAMEWORK_ADMIN_DIR . '/images/alert-good.gif';
+            } else { // If this is not the latest version which is published
+                $lastEdited =  Versioned::get_latest_version('Block', $this->ID)->LastEdited;
+                $image =  BLOCKS_DIR . '/images/alert-saved.jpg';
+            }
+            $obj->setValue('<img src="' . $image . '" /> ' . DBField::create_field('SS_Datetime', $lastEdited)->Nice());
+        } else { // Draft
             $lastEdited = Versioned::get_by_stage('Block', 'Stage')->byID($this->ID)->LastEdited;
-            $obj->setValue('<img src="' . FRAMEWORK_ADMIN_DIR . '/images/alert-bad.gif" />'  .  DBField::create_field('SS_Datetime', $lastEdited)->Nice());
+            $obj->setValue('<img src="' . FRAMEWORK_ADMIN_DIR . '/images/alert-bad.gif" /> '  .  DBField::create_field('SS_Datetime', $lastEdited)->Nice());
         }
         return $obj;
     }
